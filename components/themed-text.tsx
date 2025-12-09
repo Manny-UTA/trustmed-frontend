@@ -1,3 +1,7 @@
+///Reusable text component that automatically adapts to light/dark mode.//////
+///This is only for UI styling - not connected to any AI or clinical logic.///
+///Lets me use consistent typography (title, subtitle, links) across the app./
+//////////////////////////////////////////////////////////////////////////////
 import { StyleSheet, Text, type TextProps } from 'react-native';
 
 import { useThemeColor } from '@/hooks/use-theme-color';

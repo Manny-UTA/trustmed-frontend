@@ -1,3 +1,7 @@
+///Reusable container component that adapts its background color to light/dark mode./
+///Purely for UI styling—no logic related to the intake flow or AI///////////////////
+///Ensures any screen or section automatically uses the correct background////
+/////////////////////////////////////////////////////////////////////////////////////
 import { View, type ViewProps } from 'react-native';
 
 import { useThemeColor } from '@/hooks/use-theme-color';
