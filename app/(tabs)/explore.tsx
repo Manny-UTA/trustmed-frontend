@@ -702,6 +702,28 @@ export default function ChatbotScreen() {
         >
           <View style={styles.workspace}>
 
+            {/* Mode Toggle */}
+<View style={{ flexDirection: 'row', gap: 8, marginBottom: 16, justifyContent: 'center' }}>
+  {([
+    { mode: 'control', label: 'V.A' },
+    { mode: 'high', label: 'V.B' },
+    { mode: 'chatgpt', label: 'V.C' },
+  ] as { mode: TransparencyMode; label: string }[]).map((item) => {
+    const isActive = mode === item.mode;
+    return (
+      <Pressable
+        key={item.mode}
+        onPress={() => setMode(item.mode)}
+        style={{ paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, backgroundColor: isActive ? '#3B82F6' : '#E5E7EB', borderWidth: 1, borderColor: isActive ? '#2563EB' : '#D1D5DB' }}
+      >
+        <ThemedText style={{ color: isActive ? '#FFFFFF' : '#374151', fontWeight: '600' }}>
+          {item.label}
+        </ThemedText>
+      </Pressable>
+    );
+  })}
+</View>
+
 
 
             {/* ========================= CHATGPT MODE ========================= */}
