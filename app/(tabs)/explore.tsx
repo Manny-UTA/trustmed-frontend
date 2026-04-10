@@ -464,7 +464,7 @@ export default function ChatbotScreen() {
     }, 400);
   };
 
-  const handleChatSend = () => {
+  const handleChatSend = async () => {
     if (!chatInput.trim()) return;
     const userText = chatInput.trim();
 
@@ -473,15 +473,41 @@ export default function ChatbotScreen() {
     setChatInput('');
     setAiTyping(true);
 
-    setTimeout(() => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/v1/intake/concern-analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ freeTextConcern: userText, locale: 'en-US' }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setConcernSuggestions([data.primaryCategory, ...(data.candidateCategories || [])]);
+        setClinicalSummary(data.clinicalSummary || null);
+        setSelectedConcern(data.primaryCategory || 'General Health Concern');
+        const symptoms = getSymptomsForConcern(data.primaryCategory || 'General Health Concern');
+        setSymptomRatings(symptoms.map(s => ({ symptom: s, severity: 0 })));
+
+        setAiTyping(false);
+        appendChatMessage({
+          id: `ai-duration-${Date.now()}`,
+          role: 'ai',
+          text: `I see — ${data.clinicalSummary ? data.clinicalSummary.split('.')[0] + '.' : "I'm sorry to hear that."} How long have you been experiencing this?`,
+          component: 'durationSlider',
+        });
+      } else {
+        throw new Error('Backend error');
+      }
+    } catch (err) {
+      console.error('Chat analyze error', err);
       setAiTyping(false);
       appendChatMessage({
         id: `ai-duration-${Date.now()}`,
         role: 'ai',
-        text: "Okay, I'm sorry to hear that. How long have you been experiencing this?",
+        text: "I'm sorry to hear that. How long have you been experiencing this?",
         component: 'durationSlider',
       });
-    }, 300);
+    }
   }; // FIX: brace was missing — handleChatSend now properly closed here
 
   //////////////////////////
@@ -701,28 +727,6 @@ export default function ChatbotScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.workspace}>
-
-            {/* Mode Toggle */}
-<View style={{ flexDirection: 'row', gap: 8, marginBottom: 16, justifyContent: 'center' }}>
-  {([
-    { mode: 'control', label: 'V.A' },
-    { mode: 'high', label: 'V.B' },
-    { mode: 'chatgpt', label: 'V.C' },
-  ] as { mode: TransparencyMode; label: string }[]).map((item) => {
-    const isActive = mode === item.mode;
-    return (
-      <Pressable
-        key={item.mode}
-        onPress={() => setMode(item.mode)}
-        style={{ paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, backgroundColor: isActive ? '#3B82F6' : '#E5E7EB', borderWidth: 1, borderColor: isActive ? '#2563EB' : '#D1D5DB' }}
-      >
-        <ThemedText style={{ color: isActive ? '#FFFFFF' : '#374151', fontWeight: '600' }}>
-          {item.label}
-        </ThemedText>
-      </Pressable>
-    );
-  })}
-</View>
 
 
 
@@ -1264,7 +1268,7 @@ const styles = StyleSheet.create({
   progressLine: { width: 40, height: 2, backgroundColor: '#D1D5DB', marginHorizontal: 4 },
   progressLineActive: { backgroundColor: '#3B82F6' },
   content: { flex: 1 },
-  scrollContent: { padding: 24 },
+  scrollContent: { padding: 16 },
   stepContainer: { gap: 16, backgroundColor: '#FFFFFF', padding: 25, borderRadius: 20, borderWidth: 1, borderColor: '#E5E7EB', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } },
   stepTitle: { fontSize: 20 },
   stepDescription: { opacity: 0.7, lineHeight: 20 },
@@ -1322,8 +1326,8 @@ const styles = StyleSheet.create({
   sourceMeta: { fontSize: 12, opacity: 0.7 },
   sourceRelevance: { fontSize: 12, marginTop: 4 },
   intakeWorkspace: { flexDirection: Platform.OS === 'web' ? 'row' : 'column', alignItems: 'flex-start', gap: 24 },
-  workspace: { width: '100%', alignSelf: 'center', paddingHorizontal: 24 },
-  intakeLeft: { flex: 2 },
+  workspace: { maxWidth: 1100, width: '100%', alignSelf: 'center' },
+  intakeLeft: { flex: 2, minWidth: 500 },
   promptBox: { marginTop: 16, padding: 16, backgroundColor: '#F3F4F6', borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB' },
   emergencyBanner: { marginTop: 12, padding: 16, borderRadius: 12, borderWidth: 2, borderColor: '#EF4444', backgroundColor: '#FEE2E2' },
   emergencyTitle: { fontSize: 15, fontWeight: '700', color: '#991B1B', marginBottom: 4 },
