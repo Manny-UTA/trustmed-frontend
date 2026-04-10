@@ -101,6 +101,34 @@ const TOTAL_STEPS = 3;
 const SEVERITY_LABELS = ['None', 'Mild', 'Moderate', 'Severe'];
 const DURATION_LABELS = ['1 day', '3 days', '1 week', '1 month'];
 
+interface StudyScenario {
+  id: string;
+  label: string;
+  riskLevel: 'Low' | 'Moderate' | 'High';
+  text: string;
+}
+
+const STUDY_SCENARIOS: StudyScenario[] = [
+  {
+    id: 'scenario-a',
+    label: 'Scenario A',
+    riskLevel: 'Low',
+    text: "I've had a mild headache and runny nose for about 2 days. I've been stressed with exams and not sleeping great.",
+  },
+  {
+    id: 'scenario-b',
+    label: 'Scenario B',
+    riskLevel: 'Moderate',
+    text: "I've had a sore throat, fever around 101°F, and swollen glands for 3 days. It hurts to swallow and I haven't been able to eat much.",
+  },
+  {
+    id: 'scenario-c',
+    label: 'Scenario C',
+    riskLevel: 'High',
+    text: "I've been having chest tightness and shortness of breath on and off since this morning. It gets worse when I walk up stairs and I feel dizzy.",
+  },
+];
+
 //////////////////////////////
 // 5) Legacy / Reference (Optional)
 //////////////////////////////
@@ -277,6 +305,13 @@ export default function ChatbotScreen() {
   //////////////////////////
   const [freeText, setFreeText] = useState('');
   const [clinicalSummary, setClinicalSummary] = useState<string | null>(null);
+  const [selectedScenario, setSelectedScenario] = useState<string | null>(null);
+
+  const handleSelectScenario = (scenario: StudyScenario) => {
+    setSelectedScenario(scenario.id);
+    setFreeText(scenario.text);
+    setChatInput(scenario.text);
+  };
 
   //////////////////////////
   // 8.3) Step 2 State
@@ -667,23 +702,7 @@ export default function ChatbotScreen() {
         >
           <View style={styles.workspace}>
 
-            {/* Mode Toggle */}
-            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16, justifyContent: 'center' }}>
-              {(['control', 'high', 'chatgpt'] as TransparencyMode[]).map((m) => {
-                const isActive = mode === m;
-                return (
-                  <Pressable
-                    key={m}
-                    onPress={() => setMode(m)}
-                    style={{ paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, backgroundColor: isActive ? '#3B82F6' : '#E5E7EB', borderWidth: 1, borderColor: isActive ? '#2563EB' : '#D1D5DB' }}
-                  >
-                    <ThemedText style={{ color: isActive ? '#FFFFFF' : '#374151', fontWeight: '600', textTransform: 'capitalize' }}>
-                      {m}
-                    </ThemedText>
-                  </Pressable>
-                );
-              })}
-            </View>
+
 
             {/* ========================= CHATGPT MODE ========================= */}
             {mode === 'chatgpt' && (
@@ -810,29 +829,6 @@ export default function ChatbotScreen() {
                       <Pressable style={styles.primaryButton} onPress={handleChatSend}>
                         <ThemedText style={styles.buttonText}>Send</ThemedText>
                       </Pressable>
-                    </View>
-                  </View>
-
-                  {/* RIGHT — Live Summary / Transparency */}
-                  <View style={styles.intakeRight}>
-                    <ThemedText style={styles.sourcesTitle}>Prompt Summary</ThemedText>
-                    <View style={{ marginBottom: 16 }}>
-                      <ThemedText style={{ fontWeight: '600', marginBottom: 6 }}>AI Role</ThemedText>
-                      <ThemedText style={styles.summaryText}>Acts as a health education assistant focused on organizing symptom information.</ThemedText>
-                    </View>
-                    <View style={{ marginBottom: 16 }}>
-                      <ThemedText style={{ fontWeight: '600', marginBottom: 6 }}>Safety Guardrails</ThemedText>
-                      <ThemedText style={styles.summaryText}>
-                        • Doesn't diagnose conditions{"\n"}
-                        • Doesn't prescribe medication{"\n"}
-                        • Doesn't make emergency decisions
-                      </ThemedText>
-                    </View>
-                    <View style={{ marginBottom: 16 }}>
-                      <ThemedText style={{ fontWeight: '600', marginBottom: 6 }}>Structured Summary</ThemedText>
-                      <ThemedText style={styles.summaryText}>User Input: {chatSummary.originalInput || 'Waiting for input'}</ThemedText>
-                      <ThemedText style={styles.summaryText}>Duration: {chatSummary.durationLabel || 'Not captured yet'}</ThemedText>
-                      <ThemedText style={styles.summaryText}>Severity: {chatSummary.severityLabel || 'Not captured yet'}</ThemedText>
                     </View>
                   </View>
 
@@ -1228,7 +1224,7 @@ export default function ChatbotScreen() {
       </ThemedView>
     </KeyboardAvoidingView>
   );
-} 
+} // ← FIX: this is the correct closing brace for the component
 
 //////////////////////////////
 // 10) Styles
@@ -1328,7 +1324,7 @@ const styles = StyleSheet.create({
   chatSelectedPill: { alignSelf: 'center', marginTop: 4, marginBottom: 12, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999, backgroundColor: '#3B82F6' },
   chatSelectedPillText: { color: '#FFFFFF', fontWeight: '600', fontSize: 13 },
   chatInputRow: { marginTop: 16, gap: 12 },
-  chatInput: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 16, fontSize: 15, minHeight: 80, textAlignVertical: 'top', color: '#1F2937' },
+  chatInput: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 16, fontSize: 15, minHeight: 120, textAlignVertical: 'top', color: '#1F2937' },
 
   // Chat summary card
   chatSummaryCard: { marginTop: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DBEAFE', borderRadius: 16, padding: 20, gap: 12 },
