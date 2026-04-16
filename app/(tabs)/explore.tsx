@@ -251,6 +251,7 @@ const getReasoningCues = (concern: string): ReasoningCue[] => {
 interface HierarchyItemProps { label: string; value?: string; }
 const HierarchyItem = ({ label, value }: HierarchyItemProps) => {
   const [visible, setVisible] = useState(true);
+  
   return (
     <View style={{ marginBottom: 10 }}>
       <Pressable onPress={() => setVisible(v => !v)}>
@@ -260,7 +261,8 @@ const HierarchyItem = ({ label, value }: HierarchyItemProps) => {
     </View>
   );
 };
-
+type TransparencyMode = 'control' | 'high' | 'chatgpt';
+const FORCE_MODE: TransparencyMode | null = null;
 export default function ChatbotScreen() {
   const insets = useSafeAreaInsets();
 
@@ -280,8 +282,20 @@ export default function ChatbotScreen() {
   const [confidenceSubmitted, setConfidenceSubmitted] = useState(false);
   const [aiTyping, setAiTyping] = useState(false);
 
-  type TransparencyMode = 'control' | 'high' | 'chatgpt';
   const [mode, setMode] = useState<TransparencyMode>('control');
+  useEffect(() => {
+    let selected: TransparencyMode;
+  
+    if (FORCE_MODE) {
+      selected = FORCE_MODE;
+    } else {
+      const conditions: TransparencyMode[] = ['control', 'high', 'chatgpt'];
+      selected = conditions[Math.floor(Math.random() * conditions.length)];
+    }
+  
+    setMode(selected);
+    console.log("Assigned condition:", selected);
+  }, []);
   const [step, setStep] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -688,7 +702,7 @@ export default function ChatbotScreen() {
       </View>
     );
   };
-
+  
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -697,8 +711,8 @@ export default function ChatbotScreen() {
     >
       <ThemedView style={styles.container}>
         {/* Header */}
-        <ThemedView style={[styles.header, { paddingTop: insets.top + 12 }]}>
-          <ThemedText type="title" style={styles.headerTitle}>
+        <View style={[styles.header, { paddingTop: insets.top + 12, backgroundColor: '#F3F6FB' }]}>
+        <ThemedText type="title" style={styles.headerTitle}>
             AI Symptom Review — Research Prototype
           </ThemedText>
           <ThemedText type="default" style={styles.headerSubtitle}>
@@ -719,7 +733,7 @@ export default function ChatbotScreen() {
               </View>
             ))}
           </View>
-        </ThemedView>
+          </View>
 
         <ScrollView
           style={styles.content}
@@ -1247,6 +1261,32 @@ export default function ChatbotScreen() {
 
           </View>
         </ScrollView>
+        {__DEV__ && (
+  <View style={styles.modeSwitcher}>
+    {['control', 'high', 'chatgpt'].map((m) => (
+      <Pressable
+        key={m}
+        onPress={() => {
+          setMode(m as any);
+          handleReset();
+        }}
+        style={[
+          styles.modeButton,
+          mode === m && styles.modeButtonActive
+        ]}
+      >
+        <ThemedText
+          style={[
+            styles.modeButtonText,
+            mode === m && styles.modeButtonTextActive
+          ]}
+        >
+          {m.toUpperCase()}
+        </ThemedText>
+      </Pressable>
+    ))}
+  </View>
+)}
       </ThemedView>
     </KeyboardAvoidingView>
   );
@@ -1258,8 +1298,8 @@ export default function ChatbotScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F3F6FB' },
-  header: { paddingHorizontal: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
-  headerTitle: { marginBottom: 4 },
+  header: { paddingHorizontal: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#E5E7EB', backgroundColor: '#F3F6FB' },
+  headerTitle: { marginBottom: 4, fontSize: Platform.OS === 'web' ? 28 : 18 },
   headerSubtitle: { fontSize: 13, opacity: 0.6, marginBottom: 16 },
   progressContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   progressWrapper: { flexDirection: 'row', alignItems: 'center' },
@@ -1270,7 +1310,7 @@ const styles = StyleSheet.create({
   content: { flex: 1 },
   scrollContent: { padding: 16 },
   stepContainer: { gap: 16, backgroundColor: '#FFFFFF', padding: 25, borderRadius: 20, borderWidth: 1, borderColor: '#E5E7EB', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } },
-  stepTitle: { fontSize: 20 },
+  stepTitle: { fontSize: Platform.OS === 'web' ? 20 : 16 },
   stepDescription: { opacity: 0.7, lineHeight: 20 },
   textInput: { backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 16, fontSize: 15, minHeight: 120, textAlignVertical: 'top', color: '#1F2937' },
   primaryButton: { backgroundColor: '#3B82F6', paddingVertical: 16, borderRadius: 12, alignItems: 'center' },
@@ -1327,7 +1367,7 @@ const styles = StyleSheet.create({
   sourceRelevance: { fontSize: 12, marginTop: 4 },
   intakeWorkspace: { flexDirection: Platform.OS === 'web' ? 'row' : 'column', alignItems: 'flex-start', gap: 24 },
   workspace: { maxWidth: 1100, width: '100%', alignSelf: 'center' },
-  intakeLeft: { flex: 2, minWidth: 500 },
+  intakeLeft: { flex: 1 },
   promptBox: { marginTop: 16, padding: 16, backgroundColor: '#F3F4F6', borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB' },
   emergencyBanner: { marginTop: 12, padding: 16, borderRadius: 12, borderWidth: 2, borderColor: '#EF4444', backgroundColor: '#FEE2E2' },
   emergencyTitle: { fontSize: 15, fontWeight: '700', color: '#991B1B', marginBottom: 4 },
@@ -1351,6 +1391,37 @@ const styles = StyleSheet.create({
   chatSelectedPillText: { color: '#FFFFFF', fontWeight: '600', fontSize: 13 },
   chatInputRow: { marginTop: 16, gap: 12 },
   chatInput: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 16, fontSize: 15, minHeight: 120, textAlignVertical: 'top', color: '#1F2937' },
+
+  modeSwitcher: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  
+  modeButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    backgroundColor: '#E5E7EB',
+  },
+  
+  modeButtonActive: {
+    backgroundColor: '#3B82F6',
+  },
+  
+  modeButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  
+  modeButtonTextActive: {
+    color: '#FFFFFF',
+  },
 
   // Chat summary card
   chatSummaryCard: { marginTop: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DBEAFE', borderRadius: 16, padding: 20, gap: 12 },
