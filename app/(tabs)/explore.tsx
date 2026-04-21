@@ -1261,7 +1261,7 @@ export default function ChatbotScreen() {
 
           </View>
         </ScrollView>
-        {__DEV__ && (
+        {false && (
   <View style={styles.modeSwitcher}>
     {['control', 'high', 'chatgpt'].map((m) => (
       <Pressable

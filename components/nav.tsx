@@ -2,7 +2,6 @@
 ///Purely visual - no clinical logic or AI features here.///////////////////////////
 ///Used only to show the TrustMed logo and keep navigation consistent across pages./
 ////////////////////////////////////////////////////////////////////////////////////
-import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
